@@ -1,0 +1,64 @@
+﻿@page "/"
+@inject IServiceOperations operation
+@inject IJSRuntime _jSRuntime
+@inject NavigationManager navigation
+@inherits FluxorComponent
+@inject IState<AccountState> AccountState
+@inject IDispatcher Dispatcher
+
+<PageBase PageName="Hesaplarım">
+    <Child>
+        @if (accountList != null)
+        {
+            <Table>
+                <TableHeader>
+                    <th>Hesap</th>
+                    <th>Hesap Tipi</th>
+                    <th>Hesap Adı</th>
+                    <th>Bakiye</th>
+                    <th>Kullanılabilir Bakiye</th>
+                    <th>İşlemler</th>
+                </TableHeader>
+                <RowTemplate>
+                    @foreach (var item in accountList)
+                    {
+                        <tr>
+                            <td>@item.Account <br /> @item.Iban</td>
+                            <td>@item.AccountType</td>
+                            <td>@item.AccountName</td>
+                            <td>@item.BalanceStr</td>
+                            <td>@item.AvailableBalanceStr</td>
+                            @{
+                                string url = $"/AccountDetail/{item.Id}";
+                                <td><a role="button"><EditImage Url="@url" /></a></td>
+                            }
+                        </tr>
+                    }
+                </RowTemplate>
+            </Table>
+        }
+        <a @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("OpenModal","#MailAdd")) class="custoLink" role="button"><img src="../Images/Add.png" style="width:20px;height:20px">YENİ E-POSTA EKLE</a>
+    </Child>
+</PageBase>
+
+@code {
+    List<MyAccountModel> accountList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        accountList = AccountState.Value.AccountList;
+        if (object.Equals(accountList, null))
+        {
+            DataTableRequest request = new DataTableRequest();
+            var result = await operation.Post<Result<DataTableResponse<MyAccountModel>>>("/Account/MyAccount", request);
+
+            if (result.ResultStatus)
+            {
+                Dispatcher.Dispatch(new SetAccount(result.ResultObje.Data));
+                accountList = AccountState.Value.AccountList;
+                long count = result.ResultObje.TotalCount;
+
+            }
+        }
+    }
+}

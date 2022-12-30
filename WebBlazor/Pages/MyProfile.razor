@@ -1,0 +1,76 @@
+﻿@page "/MyProfile"
+@inject ISessionStorageService sessionStorage
+@inject IJSRuntime _jSRuntime
+@inherits FluxorComponent
+@inject IState<ProfileState> ProfileState
+@inject IDispatcher Dispatcher
+@inject IServiceOperations operation
+
+<PageBase PageName="Profilim">
+    <Child>
+        <PhotoChangeModal />
+        @if (!object.Equals(claim, null))
+        {
+            <div class="row">
+                <div class="col-sm-2">
+                    <img src="@claim.Photo"
+                     class="rounded-circle"
+                     style="height:7rem;width:7rem"
+                     role="button"
+                     @onclick=PhotoChange />
+                </div>
+                <div class="col-sm-4">
+                    <div>
+                        <p class="colorText">
+                            @claim.Name.ToUpper() @claim.Surname.ToUpper()
+                        </p>
+                    </div>
+                    <div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <p>Müşteri No:</p>
+                            </div>
+                            <div class="col-sm">
+                                <p>@claim.CustomerNumber</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <p>Uyruk:</p>
+                            </div>
+                            <div class="col-sm">
+                                <p>TÜRKİYE</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        <AdresListComponent />
+        <EpostaListComponent />
+        <PhoneListComponent />
+    </Child>
+</PageBase>
+
+@code {
+    ClaimModel claim;
+
+    protected async override Task OnInitializedAsync()
+    {
+        claim = ProfileState.Value.Claim;
+        if (object.Equals(claim, null))
+        {
+            var result = await operation.Get<Result<ClaimModel>>("/Customer/GetNameAndImage");
+            if (result.ResultStatus)
+            {
+                Dispatcher.Dispatch(new SetProfile(result.ResultObje));
+                claim = result.ResultObje;
+            }
+        }
+    }
+
+    async Task PhotoChange()
+    {
+        await this._jSRuntime.InvokeVoidAsync("OpenModal", "#Photo");
+    }
+}

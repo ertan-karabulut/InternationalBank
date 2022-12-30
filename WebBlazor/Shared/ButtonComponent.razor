@@ -1,0 +1,18 @@
+﻿<button style="border-width:0;background-color:#2ea8ab;color:white;padding:10px;@Style" type="@Type" @onclick="@OnClick" class="@Class" data-toggle="@DataToggle" data-target="@DataTarget">@Title</button>
+
+@code {
+    [Parameter]
+    public string Style { get; set; }
+    [Parameter]
+    public string Type { get; set; }
+    [Parameter]
+    public string Title { get; set; }
+    [Parameter]
+    public string Class { get; set; }
+    [Parameter]
+    public string DataToggle { get; set; }
+    [Parameter]
+    public string DataTarget { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+}

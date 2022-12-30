@@ -1,0 +1,107 @@
+﻿@inject IServiceOperations operation
+@inject IJSRuntime _jSRuntime
+@inject IDispatcher Dispatcher
+@inject NavigationManager navigation
+
+<ModalPageComponent Id="Phone" Title="Değişiklik">
+    <Body>
+        <h6>Lütfen gerekli bilgileri girin.</h6>
+        @if (!object.Equals(updatePhone, null))
+        {
+            <EditForm Model=updatePhone OnValidSubmit=UpdatePhone>
+                <DataAnnotationsValidator />
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-4 info-left">
+                                    <a class="float-right">Adres Tipi</a>
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <a>Telefon</a>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4 info-left">
+                                    <a class="float-right">Telefon numarası</a>
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <InputText type="input" id="PhoneNumber" @bind-Value=@updatePhone.PhoneNumber />
+                                    <ValidationMessage For="@(()=>updatePhone.PhoneNumber)"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4 info-left">
+                                    <a class="float-right">Telefon Adı</a>
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <InputText type="input" id="NumberName" @bind-Value=@updatePhone.NumberName />
+                                    <ValidationMessage For="@(()=>updatePhone.NumberName)"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4 info-right">
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <label><InputCheckbox @bind-Value=updatePhone.IsFavorite style="width:15px" id="IsFavorite" /> İletişim Adresi olarak tanımlamak istiyorum.</label>
+                                    <ValidationMessage For="@(()=>updatePhone.IsFavorite)"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm">
+                                    <ButtonComponent Title="Geri" Type="button" @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("CloseModal","#Phone")) />
+                                </div>
+                                <div class="col-sm">
+                                    <ButtonComponent Title="Kaydet" Type="submit" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        }
+    </Body>
+</ModalPageComponent>
+<SuccessModalComponent Message="Telefon numranız başarıyla güncellendi." Id="successModalPhone" ApprovalOnPress=@(async()=> {
+    await _jSRuntime.InvokeVoidAsync("CloseModal","#successModalPhone");
+    navigation.NavigateTo("/MyProfile", true);
+    }) />
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public string PhoneNumber { get; set; }
+    [Parameter]
+    public string NumberName { get; set; }
+    [Parameter]
+    public int CustomerId { get; set; }
+    [Parameter]
+    public bool IsFavorite { get; set; }
+    PhoneNumberUpdateDto updatePhone;
+
+    protected override void OnParametersSet()
+    {
+        if (Id > 0)
+        {
+            updatePhone = new PhoneNumberUpdateDto();
+            updatePhone.CustomerId = CustomerId;
+            updatePhone.Id = Id;
+            updatePhone.PhoneNumber = PhoneNumber;
+            updatePhone.NumberName = NumberName;
+            updatePhone.IsFavorite = IsFavorite;
+        }
+        base.OnParametersSet();
+    }
+
+    async Task UpdatePhone()
+    {
+        var result = await operation.Post<Result>("/PhoneNumber/UpdatePhoneNumber", updatePhone);
+        if (result.ResultStatus)
+        {
+            Dispatcher.Dispatch(new SetPhone(null));
+            await _jSRuntime.InvokeVoidAsync("CloseModal", "#Phone");
+            await _jSRuntime.InvokeVoidAsync("OpenModal", "#successModalPhone");
+        }
+    }
+}

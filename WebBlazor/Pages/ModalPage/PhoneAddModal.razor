@@ -1,0 +1,73 @@
+﻿@inject IServiceOperations operation
+@inject IJSRuntime _jSRuntime
+@inject IDispatcher Dispatcher
+@inject NavigationManager navigation
+
+<ModalPageComponent Id="PhoneAdd" Title="Yeni Kayıt">
+    <Body>
+        <h6>Lütfen gerekli bilgileri girin.</h6>
+        <EditForm Model=createPhone OnValidSubmit=AddPhone>
+            <DataAnnotationsValidator />
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">Telefon numarası</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <InputText type="input" id="PhoneNumber" @bind-Value=@createPhone.PhoneNumber />
+                                <ValidationMessage For="@(()=>createPhone.PhoneNumber)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">Telefon Adı</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <InputText type="input" id="NumberName" @bind-Value=@createPhone.NumberName />
+                                <ValidationMessage For="@(()=>createPhone.NumberName)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-right">
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <label><InputCheckbox @bind-Value=createPhone.IsFavorite style="width:15px" id="IsFavorite" /> İletişim Adresi olarak tanımlamak istiyorum.</label>
+                                <ValidationMessage For="@(()=>createPhone.IsFavorite)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <ButtonComponent Title="Geri" Type="button" @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("CloseModal","#PhoneAdd")) />
+                            </div>
+                            <div class="col-sm">
+                                <ButtonComponent Title="Kaydet" Type="submit" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </Body>
+</ModalPageComponent>
+<SuccessModalComponent Message="Telefon numranız başarıyla kaydedildi." Id="successAddModalPhone" ApprovalOnPress=@(async()=> {
+    await _jSRuntime.InvokeVoidAsync("CloseModal","#successAddModalPhone");
+    navigation.NavigateTo("/MyProfile", true);
+}) />
+
+@code {
+    PhoneNumberCreateDto createPhone = new PhoneNumberCreateDto();
+
+    async Task AddPhone()
+    {
+        createPhone.IsActive = true;
+        var result = await operation.Post<Result>("/PhoneNumber/AddPhoneNumber", createPhone);
+        if (result.ResultStatus)
+        {
+            Dispatcher.Dispatch(new SetPhone(null));
+            await _jSRuntime.InvokeVoidAsync("CloseModal", "#PhoneAdd");
+            await _jSRuntime.InvokeVoidAsync("OpenModal", "#successAddModalPhone");
+        }
+    }
+}

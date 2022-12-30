@@ -1,0 +1,64 @@
+﻿@inject IServiceOperations operation
+@inject IJSRuntime _jSRuntime
+@inject IDispatcher Dispatcher
+@inject NavigationManager navigation
+
+<ModalPageComponent Id="MailAdd" Title="Yeni Kayıt">
+    <Body>
+        <h6>Lütfen gerekli bilgileri girin.</h6>
+        <EditForm Model=addMail OnValidSubmit=AddMail>
+            <DataAnnotationsValidator />
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">E-Posta Adresi</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <InputText type="input" id="EMail" @bind-Value=addMail.EMail />
+                                <ValidationMessage For="@(()=>addMail.EMail)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-right">
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <label><InputCheckbox @bind-Value=addMail.IsFavorite style="width:15px" id="IsFavorite" /> İletişim Adresi olarak tanımlamak istiyorum.</label>
+                                <ValidationMessage For="@(()=>addMail.IsFavorite)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <ButtonComponent Title="Geri" Type="button" @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("CloseModal","#MailAdd")) />
+                            </div>
+                            <div class="col-sm">
+                                <ButtonComponent Title="Kaydet" Type="submit" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </Body>
+</ModalPageComponent>
+<SuccessModalComponent Message="E-Posta adresi başarıyla kaydedildi." Id="successAddModalMail" ApprovalOnPress=@(async()=> {
+                       await _jSRuntime.InvokeVoidAsync("CloseModal","#successAddModalMail");
+                       navigation.NavigateTo("/MyProfile", true);
+                       }) />
+
+@code {
+    MailCreateDto addMail = new MailCreateDto();
+
+    async Task AddMail()
+    {
+        addMail.IsActive = true;
+        var result = await operation.Post<Result>("/Mail/AddMail", addMail);
+        if (result.ResultStatus)
+        {
+            Dispatcher.Dispatch(new SeTMail(null));
+            await _jSRuntime.InvokeVoidAsync("CloseModal", "#MailAdd");
+            await _jSRuntime.InvokeVoidAsync("OpenModal", "#successAddModalMail");
+        }
+    }
+}

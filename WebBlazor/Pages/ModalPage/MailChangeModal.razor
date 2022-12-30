@@ -1,0 +1,96 @@
+﻿@inject IServiceOperations operation
+@inject IJSRuntime _jSRuntime
+@inject IDispatcher Dispatcher
+@inject NavigationManager navigation
+
+<ModalPageComponent Id="Mail" Title="Değişiklik">
+    <Body>
+        <h6>Lütfen gerekli bilgileri girin.</h6>
+        @if (!object.Equals(updateMail, null))
+        {
+            <EditForm Model=updateMail OnValidSubmit=UpdateMail>
+                <DataAnnotationsValidator />
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-4 info-left">
+                                    <a class="float-right">Adres Tipi</a>
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <a>E-POSTA</a>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4 info-left">
+                                    <a class="float-right">E-Posta Adresi</a>
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <InputText type="input" id="EMail" @bind-Value=updateMail.EMail />
+                                    <ValidationMessage For="@(()=>updateMail.EMail)"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4 info-right">
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <label><InputCheckbox @bind-Value=updateMail.IsFavorite style="width:15px" id="IsFavorite" /> İletişim Adresi olarak tanımlamak istiyorum.</label>
+                                    <ValidationMessage For="@(()=>updateMail.IsFavorite)"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm">
+                                    <ButtonComponent Title="Geri" Type="button" @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("CloseModal","#Mail")) />
+                                </div>
+                                <div class="col-sm">
+                                    <ButtonComponent Title="Kaydet" Type="submit" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        }
+    </Body>
+</ModalPageComponent>
+<SuccessModalComponent Message="E-Posta adresi başarıyla güncellendi." Id="successModalMail" ApprovalOnPress=@(async()=> {
+    await _jSRuntime.InvokeVoidAsync("CloseModal","#successModalMail");
+    navigation.NavigateTo("/MyProfile", true);
+    }) />
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public string Email { get; set; }
+    [Parameter]
+    public int CustomerId { get; set; }
+    [Parameter]
+    public bool IsFavorite { get; set; }
+    MailUpdateDto updateMail;
+
+    protected override void OnParametersSet()
+    {
+        if(Id > 0)
+        {
+            updateMail = new MailUpdateDto();
+            updateMail.CustomerId = CustomerId;
+            updateMail.Id = Id;
+            updateMail.EMail = Email;
+            updateMail.IsActive = true;
+            updateMail.IsFavorite = IsFavorite;
+        }
+        base.OnParametersSet();
+    }
+
+    async Task UpdateMail()
+    {
+        var result = await operation.Post<Result>("/Mail/UpdateMail", updateMail);
+        if (result.ResultStatus)
+        {
+            Dispatcher.Dispatch(new SeTMail(null));
+            await _jSRuntime.InvokeVoidAsync("CloseModal", "#Mail");
+            await _jSRuntime.InvokeVoidAsync("OpenModal", "#successModalMail");
+        }
+    }
+}

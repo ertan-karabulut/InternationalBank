@@ -1,0 +1,12 @@
+﻿<ModalComponent Id=@Id Title=@(string.IsNullOrEmpty(Title)?"Bilgi":Title) Message=@Message TitleStyle="background-color:yellow" ApprovalOnPress=@ApprovalOnPress Ok=true/>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    [Parameter]
+    public string Title { get; set; }
+    [Parameter]
+    public string Message { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> ApprovalOnPress { get; set; }
+}

@@ -1,0 +1,175 @@
+﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100%;
+    background-color: #f2f2f2;
+}
+
+.btn-link {
+    color: white;
+    padding: 10px 20px 10px 20px;
+    font-size: 15px;
+    text-decoration: none
+}
+
+a {
+    color: #212529;
+    text-decoration: none !important;
+}
+
+
+    a:hover {
+        color: #212529;
+        text-decoration: none !important;
+    }
+
+.link {
+    color: #2fa8ac;
+    text-decoration: none !important;
+}
+
+.link:hover {
+    text-decoration: underline !important;
+    color: #2fa8ac;
+}
+
+.btn-link:hover {
+    text-decoration: none;
+    color: white;
+    border: double;
+    border-width: 1px;
+    border-color: white;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+.row {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem
+}
+
+button, input {
+    width: 100%
+}
+
+.panel {
+    box-shadow: 0px 3px 4px rgba(0,0,0,.24);
+    background-color: white;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.panel > .panel-title {
+    color: #7fbf35
+}
+
+.dropdown-menu {
+    background-color: #027029
+}
+
+.dropdown-item {
+    background-color: #027029
+}
+
+.dropdown-item:hover {
+    background-color: #027029
+}
+
+.subheader {
+    color: #abb4bf
+}
+
+.spinner-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+}
+
+.spinner {
+    position:absolute;
+    top:50%;
+    left:50%;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .not-print {
+        display:none
+    }
+
+    .print * {
+        visibility: visible;
+    }
+
+    .print{
+        display:block;
+    }
+
+    .print {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        z-index: 100000000;
+    }
+}
+
+.colorText {
+    color: #038928
+}
+
+.custoLink {
+    color: #2fa8ad
+}
+
+.custoLink:hover {
+    color: #2fa8ad
+}

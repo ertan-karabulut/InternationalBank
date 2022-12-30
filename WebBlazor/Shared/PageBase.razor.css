@@ -1,0 +1,15 @@
+﻿.spinner {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 9999;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255,255,255,0.8);
+}
+
+.spinner > div {
+    position: absolute;
+    top: 50%;
+    left: 50%
+}

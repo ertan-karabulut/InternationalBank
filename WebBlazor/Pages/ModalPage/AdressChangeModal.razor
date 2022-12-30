@@ -1,0 +1,190 @@
+﻿@inject IServiceOperations operation
+@inject IJSRuntime _jSRuntime
+@inherits FluxorComponent
+@inject IState<AdressState> AdressState
+@inject IDispatcher Dispatcher
+@inject NavigationManager navigation
+
+<ModalPageComponent Id="Adress" Title="Değişiklik">
+    <Body>
+        <h6>Lütfen adres bilgilerinizi giriniz.</h6>
+        @if (!object.Equals(adressUpdate, null))
+        {
+            <EditForm Model=adressUpdate OnValidSubmit=UpdateAdress>
+                <DataAnnotationsValidator />
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-4 info-left">
+                                    <a class="float-right">Adres Tipi</a>
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <a>@adressUpdate.AdressName</a>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4 info-left">
+                                    <a class="float-right">Ülke</a>
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <select class="custom-select" @onchange=SelectedCountryDropDown>
+                                        @foreach (var item in data.Data.CountrySelectList)
+                                        {
+                                            <option value=@item.Value selected=@item.Selected>@item.Text</option>
+                                        }
+                                    </select>
+                                    <ValidationMessage For="@(()=>adressUpdate.CountryId)"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4 info-left">
+                                    <a class="float-right">İl</a>
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <select class="custom-select" @onchange=SelectedCityDropDown>
+                                        @foreach (var item in data.Data.CitySelectList)
+                                        {
+                                            <option value=@item.Value selected=@item.Selected>@item.Text</option>
+                                        }
+                                    </select>
+                                    <ValidationMessage For="@(()=>adressUpdate.CityId)"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4 info-left">
+                                    <a class="float-right">İlçe</a>
+                                </div>
+                                <div class="col-sm-6 info-right">
+                                    <InputSelect @bind-Value=adressUpdate.DistrictId class="custom-select">
+                                        @foreach (var item in data.Data.DistrictSelectList)
+                                        {
+                                        <option value=@item.Value selected=@item.Selected>@item.Text</option>
+                                        }
+                                </InputSelect>
+                                <ValidationMessage For="@(()=>adressUpdate.DistrictId)"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">Adres</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <InputText type="input" id="Adress" @bind-Value=adressUpdate.AdressDetail />
+                                <ValidationMessage For="@(()=>adressUpdate.AdressDetail)"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">İkamet Başlama Tarihi</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <InputDate @bind-Value=adressUpdate.DomicileStartDate>
+
+                                </InputDate>
+                                <ValidationMessage For="@(()=>adressUpdate.DomicileStartDate)"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-right">
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <label><InputCheckbox @bind-Value=adressUpdate.IsFavorite style="width:15px" /> İletişim Adresi olarak tanımlamak istiyorum.</label>
+                            </div>
+                            <ValidationMessage For="@(()=>adressUpdate.IsFavorite)"/>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <ButtonComponent Title="Geri" Type="button" @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("CloseModal","#Adress")) />
+                            </div>
+                            <div class="col-sm">
+                                <ButtonComponent Title="Kaydet" Type="submit" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+        }
+    </Body>
+</ModalPageComponent>
+<SuccessModalComponent Message="Adresiniz başarıyla güncellendi." Id="successModalAdress" ApprovalOnPress=@(async()=> {
+    await _jSRuntime.InvokeVoidAsync("CloseModal","#successModalAdress");
+    navigation.NavigateTo("/MyProfile", true);
+    }) />
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    DataResponse<AdressDetailDto> data;
+    AdressUpdateDto adressUpdate;
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id > 0)
+        {
+            DataRequest request = new DataRequest();
+            NameValuePair value = new NameValuePair()
+                {
+                    Name = "Id",
+                    Value = Id.ToString()
+                };
+            request.Filter.Add(value);
+            var result = await operation.Post<Result<DataResponse<AdressDetailDto>>>($"/Adress/GetAdressDetail", request);
+            if (result.ResultStatus)
+            {
+                data = result.ResultObje;
+                adressUpdate = new AdressUpdateDto();
+                var adress = data.Data.Adress;
+                adressUpdate.AdressDetail = adress.AdressDetail;
+                adressUpdate.AdressName = adress.AdressName;
+                adressUpdate.CityId = adress.CityId;
+                adressUpdate.CountryId = adress.CountryId;
+                adressUpdate.CustomerId = adress.CustomerId;
+                adressUpdate.DistrictId = adress.DistrictId;
+                adressUpdate.DomicileStartDate = adress.DomicileStartDate;
+                adressUpdate.Id = adress.Id;
+                adressUpdate.IsFavorite = adress.IsFavorite;
+            }
+        }
+    }
+    async Task UpdateAdress()
+    {
+        var result = await operation.Post<Result>("/Adress/UpdateAdress", adressUpdate);
+        if (result.ResultStatus)
+        {
+            Dispatcher.Dispatch(new SeAdress(null));
+            await _jSRuntime.InvokeVoidAsync("CloseModal", "#Adress");
+            await _jSRuntime.InvokeVoidAsync("OpenModal", "#successModalAdress");
+        }
+    }
+
+    async Task SelectedCityDropDown(ChangeEventArgs e)
+    {
+        int cityId = 0;
+        if (int.TryParse(e.Value.ToString(), out cityId))
+        {
+            adressUpdate.CityId = cityId;
+            var result = await operation.Get<Result<List<SelectListItemModel>>>($"/Adress/GetDistrictDropDownList?CityId={cityId}");
+            if (result.ResultStatus)
+            {
+                data.Data.DistrictSelectList = result.ResultObje;
+                adressUpdate.DistrictId = int.Parse(result.ResultObje[0].Value);
+            }
+        }
+    }
+
+    async Task SelectedCountryDropDown(ChangeEventArgs e)
+    {
+        int countryId = 0;
+        if (int.TryParse(e.Value.ToString(), out countryId))
+        {
+            adressUpdate.CountryId = countryId;
+            var result = await operation.Get<Result<List<SelectListItemModel>>>($"/Adress/GetCityDropDownList?CountryId={countryId}");
+            if (result.ResultStatus)
+            {
+                data.Data.CitySelectList = result.ResultObje;
+                adressUpdate.CityId = int.Parse(result.ResultObje[0].Value);
+            }
+        }
+    }
+}

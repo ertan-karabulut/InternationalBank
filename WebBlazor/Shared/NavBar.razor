@@ -1,0 +1,15 @@
+﻿<nav class="navbar" style="background-color: #038928 !important;min-width:800px;">
+    <div class="container-fluid">
+        <NavLink class="navbar-brand" href="/">
+            <img src="/Images/logo-garantibbva.png" alt="Garanti Bankası A.Ş.">
+        </NavLink>
+        <ul class="nav justify-content-end">
+            @NavItem
+        </ul>
+    </div>
+</nav>
+
+@code {
+    [Parameter]
+    public RenderFragment NavItem { get; set; }
+}

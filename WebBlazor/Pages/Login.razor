@@ -1,0 +1,67 @@
+﻿@layout LoginLayout
+@page "/Login"
+@inject IServiceOperations operation
+@inject ILocalStorageService local
+@inject NavigationManager navigation
+
+<PageBase PageName="Garanti BBVA İnternet Bankacılığı'na Giriş">
+    <Child>
+        <h1 class="panel-title">Güvenli Bankacılığa Hoş Geldiniz</h1>
+        <p>Lütfen müşteri numaranızı ya da T.C. kimlik numaranızı ve size özel parolanızı girin.</p>
+        <br />
+        <EditForm Model="@loginModel" OnValidSubmit="@LogIn">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="col-5">
+                    <a>Müşteri / T.C. Kimlik Numarası</a>
+                </div>
+                <div class="col-5">
+                    <InputText type="input" id="user" @bind-Value="@loginModel.User" />
+                    <ValidationMessage For="@(()=>loginModel.User)"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5">
+                    <a>Parola</a>
+                </div>
+                <div class="col-5">
+                    <InputText type="password" id="password" @bind-Value="@loginModel.Password" />
+                    <ValidationMessage For="@(()=>loginModel.Password)"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5">
+                </div>
+                <div class="col-5">
+                    <button type="submit">Giriş</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5"></div>
+                <div class="col-5">
+                    <NavLink class="link" href="PasswordConfirm">
+                        Şifremi unuttum
+                    </NavLink>
+                </div>
+            </div>
+        </EditForm>
+    </Child>
+</PageBase>
+
+
+
+
+@code {
+    LoginModel loginModel = new LoginModel();
+
+    async Task LogIn()
+    {
+        var result = await operation.Post<Result<TokenResponseModel>>("/Token/GetToken", loginModel);
+        if (result.ResultStatus)
+        {
+            string data = JsonConvert.SerializeObject(result.ResultObje);
+            await local.SetItemAsStringAsync("Token", data);
+            navigation.NavigateTo("/");
+        }
+    }
+}

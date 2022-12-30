@@ -1,0 +1,156 @@
+﻿@if (!object.Equals(paginations, null))
+{
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            @if (currentPage != 1)
+            {
+                <li class="page-item" role="button" @onclick="((args)=> BackPage())">
+                    <a class="page-link" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+            }
+
+            @if (paginations.FirstOrDefault().IsBackFivePage)
+            {
+                <li class="page-item" role="button" @onclick="((args)=> BackFivePage())">
+                    <a class="page-link">
+                        ...
+                    </a>
+                </li>
+            }
+            @foreach (var item in paginations)
+            {
+                <li class="page-item @(item.Active ? "active" : null)" role="button" @onclick="((args)=> SelectedPage(item))"><a class="page-link">@item.PageNumber</a></li>
+            }
+            @if (paginations.FirstOrDefault().IsNextFivePage)
+            {
+                <li class="page-item" role="button" @onclick="((args)=> NextFivePage())">
+                    <a class="page-link">
+                        ...
+                    </a>
+                </li>
+            }
+            @if (currentPage < pageSize)
+            {
+                <li class="page-item" role="button" @onclick="((args)=> NextPage())">
+                    <a class="page-link" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+@code {
+    [Parameter]
+    public long TotalCount { get; set; }
+    [Parameter]
+    public long Take { get; set; }
+    [Parameter]
+    public EventCallback<PaginationModel> OnClick { get; set; }
+    double pageSize;
+    List<PaginationModel> paginations;
+    int currentPage = 1;
+
+    protected override void OnInitialized()
+    {
+        this.Loading();
+        base.OnInitialized();
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        this.Loading();
+        return base.OnParametersSetAsync();
+    }
+
+    async Task NextPage()
+    {
+        if (currentPage + 1 > pageSize)
+            return;
+        var pagination = new PaginationModel();
+        pagination.PageNumber = currentPage + 1;
+        pagination.Skip = (int)((pagination.PageNumber - 1) * Take);
+        await this.SelectedPage(pagination);
+    }
+
+    async Task BackPage()
+    {
+        if (currentPage - 1 < 1)
+            return;
+        var pagination = new PaginationModel();
+        pagination.PageNumber = currentPage - 1;
+        pagination.Skip = (int)((pagination.PageNumber - 1) * Take);
+        await this.SelectedPage(pagination);
+    }
+
+    async Task NextFivePage()
+    {
+        var pagination = new PaginationModel();
+        int mod = currentPage % 5;
+        if (mod > 0)
+            pagination.PageNumber = currentPage + 6 - mod;
+        else if (mod == 0)
+            pagination.PageNumber = currentPage + 1;
+
+        if (pagination.PageNumber > pageSize)
+            return;
+        pagination.Skip = (int)((pagination.PageNumber - 1) * Take);
+
+        await this.SelectedPage(pagination);
+    }
+
+    async Task BackFivePage()
+    {
+        var pagination = new PaginationModel();
+        int mod = currentPage % 5;
+        if (mod > 0)
+            pagination.PageNumber = currentPage - 4 - mod;
+        else if (mod == 0)
+            pagination.PageNumber = currentPage - 9;
+
+        if (pagination.PageNumber <= 0)
+            return;
+        pagination.Skip = (int)((pagination.PageNumber - 1) * Take);
+
+        await this.SelectedPage(pagination);
+    }
+
+    void Loading()
+    {
+        pageSize = Math.Ceiling((double)TotalCount / (double)Take);
+        paginations = new List<PaginationModel>();
+        int mod = currentPage % 5;
+        bool IsBackFivePage = false;
+        for (int i = 0; i < pageSize; i++)
+        {
+            if (paginations.Count() < 5)
+            {
+                if ((i < currentPage && i >= currentPage - mod) || (i >= currentPage && i >= currentPage - mod) || (mod == 0 && i >= currentPage - 5))
+                {
+                    paginations.Add(new PaginationModel { Skip = (int)(i * Take), PageNumber = i + 1, Active = currentPage == i + 1 });
+                }
+                else
+                {
+                    IsBackFivePage = true;
+                }
+            }
+            else
+            {
+                paginations.ForEach(x => x.IsBackFivePage = IsBackFivePage);
+                paginations.ForEach(x => x.IsNextFivePage = true);
+                break;
+            }
+            paginations.ForEach(x => x.IsBackFivePage = IsBackFivePage);
+        }
+    }
+
+    private async Task SelectedPage(PaginationModel pagination)
+    {
+        currentPage = pagination.PageNumber;
+        await OnClick.InvokeAsync(pagination);
+    }
+}

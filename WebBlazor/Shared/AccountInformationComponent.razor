@@ -1,0 +1,80 @@
+﻿@inject IServiceOperations operation
+
+@if (!object.Equals(AccountDetail, null))
+{
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="row">
+                    <div class="col-sm-auto">
+                        <a>Hesap Sahibi</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-8 info-left">
+                        <a class="float-right">Müşteri No</a>
+                    </div>
+                    <div class="col-sm-4 info-right">
+                        <a>@AccountDetail.CustomerNumber</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-auto">
+                        <a>Hesap Bilgileri</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-8 info-left">
+                        <a class="float-right">Hesap Açılış Tarihi</a>
+                    </div>
+                    <div class="col-sm-4 info-right">
+                        <a>@(AccountDetail.AccountOpenDate.HasValue?AccountDetail.AccountOpenDate.Value.ToShortDateString():null)</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-8 info-left">
+                        <a class="float-right">Hesap Türü</a>
+                    </div>
+                    <div class="col-sm-4 info-right">
+                        <a>@AccountDetail.AccountType</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-8 info-left">
+                        <a class="float-right">Döviz Kodu</a>
+                    </div>
+                    <div class="col-sm-4 info-right">
+                        <a>@AccountDetail.CurrencyCode</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-auto">
+                        <a>Hesap Bakiye ve Hareket Bilgileri</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-8 info-left">
+                        <a class="float-right">Bakiye</a>
+                    </div>
+                    <div class="col-sm-4 info-right">
+                        <a>@AccountDetail.Balance @AccountDetail.CurrencyCode</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-8 info-left">
+                        <a class="float-right">Kullanılabilir Bakiye</a>
+                    </div>
+                    <div class="col-sm-4 info-right">
+                        <a>@AccountDetail.AvailableBalance @AccountDetail.CurrencyCode</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public AccountDetailDto AccountDetail { get; set; }
+}

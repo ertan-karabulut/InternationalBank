@@ -1,0 +1,26 @@
+﻿@if (DateFormat.HasValue)
+{
+    <div class="row">
+        <div class="col-sm">
+            <p class="text-center h1">@DateFormat.Value.Day.ToString().PadLeft(2,'0')</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <p class="text-center h5">@DateEnum.GetMonthName((ushort)DateFormat.Value.Month)</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <p class="text-center h6">
+                @DateFormat.Value.Year
+            </p>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public DateTime? DateFormat { get; set; }
+}

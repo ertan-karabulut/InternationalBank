@@ -1,0 +1,105 @@
+﻿@inject IServiceOperations operation
+@inject IJSRuntime _jSRuntime
+@inject IState<MailState> MailState
+@inject NavigationManager navigation
+@inherits FluxorComponent
+@inject IDispatcher Dispatcher
+
+<div class="row">
+    <div class="col-sm-12">
+        <h6>E-posta Bilgilerim</h6>
+        <Table>
+            <TableHeader>
+                <th>
+                    İletişim
+                </th>
+                <th>
+                    Adres
+                </th>
+                <th>
+                    İşlemler
+                </th>
+            </TableHeader>
+            <RowTemplate>
+                @if (!object.Equals(mailList, null))
+                {
+                    foreach (var item in mailList.Data)
+                    {
+                        <tr>
+                            <td>
+                                @if (@item.IsFavorite)
+                                {
+                                    <a>
+                                        <img src="../Images/check.png" style="width:10px;height:10px">
+                                    </a>
+                                }
+                            </td>
+                            <td>@item.EMail</td>
+                            <td>
+                                <a class="custoLink" @onclick=@(()=>{
+                           OpenChangeModal(item.Id, item.CustomerId, item.EMail,item.IsFavorite);
+                           }) role="button">Düzenle</a>
+                                <a class="custoLink" @onclick=@(async()=>{
+                           id = item.Id;
+                           customerId = item.CustomerId;
+                           await _jSRuntime.InvokeVoidAsync("OpenModal","#DeleteMailModal");
+                           }) role="button">Sil</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </RowTemplate>
+        </Table>
+        <a @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("OpenModal","#MailAdd")) class="custoLink" role="button"><img src="../Images/Add.png" style="width:20px;height:20px">YENİ E-POSTA EKLE</a>
+    </div>
+</div>
+<MailChangeModal Id=@id CustomerId=@customerId Email=@email IsFavorite=@favorite />
+<MailAddModal/>
+<ConfirmModalComponent Id="DeleteMailModal" Title="Silme onayı" Message="İşlem  sonrasında E-Posta adresiniz silinecek. Onaylıyor musunuz?" Approval="Evet" Denial="Hayır" ApprovalOnPress=DeleteMail />
+
+@code {
+    DataTableResponse<MailDto> mailList;
+    int id;
+    int customerId;
+    string email;
+    bool favorite;
+
+    async void OpenChangeModal(int id, int customerId, string email, bool favorite)
+    {
+        this.id = id;
+        this.customerId = customerId;
+        this.email = email;
+        this.favorite = favorite;
+        await _jSRuntime.InvokeVoidAsync("OpenModal", "#Mail");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (object.Equals(MailState.Value.MailList, null))
+        {
+            DataTableRequest request = new DataTableRequest();
+            var result = await operation.Post<Result<DataTableResponse<MailDto>>>($"/EMail/CustomerMailList", request);
+            if (result.ResultStatus)
+            {
+                Dispatcher.Dispatch(new SeTMail(result.ResultObje));
+                mailList = MailState.Value.MailList;
+            }
+        }
+        else
+        {
+            mailList = MailState.Value.MailList;
+        }
+    }
+
+    async void DeleteMail()
+    {
+        MailUpdateDto mailUpdate = new MailUpdateDto();
+        mailUpdate.Id = id;
+        mailUpdate.CustomerId = customerId;
+        var result = await operation.Post<Result>("/EMail/DeleteMail", mailUpdate);
+        if (result.ResultStatus)
+        {
+            navigation.NavigateTo("/MyProfile", true);
+        }
+    }
+}

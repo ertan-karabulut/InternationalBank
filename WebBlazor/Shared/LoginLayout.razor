@@ -1,0 +1,33 @@
+﻿@using Microsoft.Extensions.Configuration;
+@inherits LayoutComponentBase
+@inject IConfiguration config
+
+<LayoutFragment>
+    <Header>
+        <NavBar>
+            <NavItem>
+                <li>
+                    <NavLink class="btn-link" href="login">
+                        BİREYSEL
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink class="btn-link" href="login">
+                        KURUMSAL
+                    </NavLink>
+                </li>
+            </NavItem>
+        </NavBar>
+    </Header>
+    <Body>
+        <div class="spinner-container" style="display:none">
+            <div class="spinner">
+                <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        </div>
+        @Body
+    </Body>
+</LayoutFragment>
+

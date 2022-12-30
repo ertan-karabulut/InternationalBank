@@ -1,0 +1,20 @@
+﻿@*@typeparam TItem*@
+@using System.Diagnostics.CodeAnalysis
+@inject IJSRuntime jSRuntime
+
+<table class="table table-bordered">
+    <thead style="background-color:#f2f2f2">
+        <tr>@TableHeader</tr>
+    </thead>
+    <tbody>
+        @RowTemplate
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public RenderFragment TableHeader { get; set; }
+
+    [Parameter]
+    public RenderFragment RowTemplate { get; set; }
+}

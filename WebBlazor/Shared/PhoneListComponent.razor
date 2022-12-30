@@ -1,0 +1,110 @@
+﻿@inject IServiceOperations operation
+@inject IState<PhoneState> PhoneState
+@inject NavigationManager navigation
+@inherits FluxorComponent
+@inject IDispatcher Dispatcher
+@inject IJSRuntime _jSRuntime
+
+<div class="row">
+    <div class="col-sm-12">
+        <h6>Cep Telefonu Bilgilerim</h6>
+        <Table>
+            <TableHeader>
+                <th>
+                    İletişim
+                </th>
+                <th>
+                    No
+                </th>
+                <th>
+                    Telefon Adı
+                </th>
+                <th>
+                    İşlemler
+                </th>
+            </TableHeader>
+            <RowTemplate>
+                @if (!object.Equals(phoneList, null))
+                {
+                    @foreach (var item in phoneList.Data)
+                    {
+                        <tr>
+                            <td>
+                                @if (@item.IsFavorite)
+                                {
+                                    <a>
+                                        <img src="../Images/check.png" style="width:10px;height:10px">
+                                    </a>
+                                }
+                            </td>
+                            <td>@item.PhoneNumber</td>
+                            <td>@item.NumberName</td>
+                            <td>
+                                <a class="custoLink" @onclick=@(()=>{
+                           OpenChangeModal(item.Id, item.CustomerId, item.PhoneNumber,item.NumberName ,item.IsFavorite);
+                           }) role="button">Düzenle</a>
+                                <a class="custoLink" @onclick=@(async()=>{
+                                    id = item.Id;
+                                    customerId = item.CustomerId;
+                                    await _jSRuntime.InvokeVoidAsync("OpenModal","#DeletePhoneModal");
+                                }) role="button">Sil</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </RowTemplate>
+        </Table>
+        <a @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("OpenModal","#PhoneAdd")) class="custoLink" role="button"><img src="../Images/Add.png" style="width:20px;height:20px">YENİ TELEFON EKLE</a>
+    </div>
+</div>
+<PhoneChangeModal Id=@id CustomerId=@customerId IsFavorite=@favorite NumberName=@numberName PhoneNumber=@phoneNumber/>
+<PhoneAddModal/>
+<ConfirmModalComponent Id="DeletePhoneModal" Title="Silme onayı" Message="İşlem sonrasında telefon numaranız silinecek. Onaylıyor musunuz?" Approval="Evet" Denial="Hayır" ApprovalOnPress=DeletePhone/>
+
+@code {
+    int id;
+    int customerId;
+    string phoneNumber;
+    string numberName;
+    bool favorite;
+    DataTableResponse<PhoneNumberDto> phoneList;
+    protected override async Task OnInitializedAsync()
+    {
+        if (object.Equals(PhoneState.Value.PhoneList, null))
+        {
+            DataTableRequest request = new DataTableRequest();
+            var result = await operation.Post<Result<DataTableResponse<PhoneNumberDto>>>($"/PhoneNumber/CustomerPhoneList", request);
+            if (result.ResultStatus)
+            {
+                Dispatcher.Dispatch(new SetPhone(result.ResultObje));
+                phoneList = PhoneState.Value.PhoneList;
+            }
+        }
+        else
+        {
+            phoneList = PhoneState.Value.PhoneList;
+        }
+    }
+
+    async void OpenChangeModal(int id, int customerId, string phoneNumber,string numberName, bool favorite)
+    {
+        this.id = id;
+        this.customerId = customerId;
+        this.phoneNumber = phoneNumber;
+        this.numberName = numberName;
+        this.favorite = favorite;
+        await _jSRuntime.InvokeVoidAsync("OpenModal", "#Phone");
+    }
+        
+    async void DeletePhone()
+    {
+        PhoneNumberUpdateDto mailPhone = new PhoneNumberUpdateDto();
+        mailPhone.Id = id;
+        mailPhone.CustomerId = customerId;
+        var result = await operation.Post<Result>("/PhoneNumber/DeletePhoneNumber",mailPhone);
+        if (result.ResultStatus)
+        {
+            navigation.NavigateTo("/MyProfile", true);
+        }
+    }
+}

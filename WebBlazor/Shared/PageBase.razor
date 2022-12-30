@@ -1,0 +1,45 @@
+﻿@inject ILocalStorageService local
+@inject NavigationManager navigation
+
+<div>
+    <div class="row subheader">
+        <div class="col-sm-8">
+            @if (!string.IsNullOrEmpty(PagePath))
+            {
+                <div>
+                    @PagePath
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(PageName))
+            {
+                <div>
+                    @PageName
+                </div>
+            }
+        </div>
+        <div class="col-sm-4">
+            @RightHeader
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 panel">
+            @Child
+        </div>
+    </div>
+
+</div>
+
+
+@code {
+
+    [Parameter]
+    public RenderFragment Child { get; set; }
+
+    [Parameter]
+    public string PagePath { get; set; }
+
+    [Parameter]
+    public string PageName { get; set; }
+    [Parameter]
+    public RenderFragment RightHeader { get; set; }
+}

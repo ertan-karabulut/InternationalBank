@@ -1,0 +1,80 @@
+version: "3.8"
+services:
+  SqlDb:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: SqlDb
+    restart: always
+    ports:
+      - "1444:1433"
+    volumes:
+      - SqlDb_volume:/var/opt/mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=ertan123
+  MongoDb:
+    image: mongo
+    container_name: MongoDb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - MongoDb_DB_volume:/data/db
+      - MongoDb_Config_volume:/data/configdb
+  RedisCache:
+    image: redis
+    container_name: RedisCache
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - Redis_volume:/data
+  Rabbitmq:
+    image: rabbitmq:management
+    container_name: Rabbitmq
+    restart: always
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - Rebbitmq_volume:/var/lib/rabbitmq
+  InternationalBankApi:
+    image: ertankarabulutdocker/internationalbankapi
+    container_name: InternationalBankApi
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    ports:
+      - "5001:80"
+    depends_on:
+      - SqlDb
+      - MongoDb
+      - RedisCache
+      - Rabbitmq
+    volumes:
+      - Api_Upload_volume:/app/Upload
+  SendMail:
+    image: ertankarabulutdocker/sendmail
+    container_name: SendMail
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      - InternationalBankApi
+    volumes:
+      - SendMail_Logs_volume:/app/Logs
+  WebUI:
+    image: ertankarabulutdocker/webui
+    container_name: WebUI
+    restart: always
+    ports:
+      - "5002:80"
+    depends_on:
+      - InternationalBankApi
+volumes:
+  SqlDb_volume:
+  MongoDb_DB_volume:
+  MongoDb_Config_volume:
+  Api_Upload_volume:
+  Redis_volume:
+  Rebbitmq_volume:
+  SendMail_Logs_volume:

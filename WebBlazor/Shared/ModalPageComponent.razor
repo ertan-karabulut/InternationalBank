@@ -1,0 +1,53 @@
+﻿<div class="modal fade bd-example-modal-lg" id="@Id" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document" style="background-color:#00000099">
+        <div class="modal-content" style="border-width:0px">
+            <div class="modal-header" style="display:block;background-color:#1c751d">
+                <div class="row">
+                    <div class="col-sm-12 text-center">
+                        <h4 style="font-weight:bold;color:white">@Title</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body text-center">
+                @Body
+            </div>
+            @if (OpenButton)
+            {
+                <div class="modal-footer">
+                    @if (!string.IsNullOrEmpty(LeftButtonTitle))
+                    {
+                        <div class="col-sm">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="@LeftButtonOnPress" style="background-color:#30a7ab;border-color:black;font-size:15px;color:#ffffff">@LeftButtonTitle</button>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(RightButtonTitle))
+                    {
+                        <div class="col-sm">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="@RightButtonOnPress" style="background-color:#ffffff;border-color:black;font-size:15px;color:#38aaae">@RightButtonTitle</button>
+                        </div>
+                    }
+                </div>
+
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    [Parameter]
+    public string Title { get; set; }
+    [Parameter]
+    public RenderFragment Body { get; set; }
+    [Parameter]
+    public bool OpenButton { get; set; }
+    [Parameter]
+    public string LeftButtonTitle { get; set; }
+    [Parameter]
+    public string RightButtonTitle { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> LeftButtonOnPress { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> RightButtonOnPress { get; set; }
+}

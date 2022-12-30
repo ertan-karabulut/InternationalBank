@@ -1,0 +1,162 @@
+﻿@inject IServiceOperations operation
+@inject IJSRuntime _jSRuntime
+@inherits FluxorComponent
+@inject IState<AdressState> AdressState
+@inject IDispatcher Dispatcher
+@inject NavigationManager navigation
+
+<ModalPageComponent Id="AdressAdd" Title="Yeni Kayıt">
+    <Body>
+        <h6>Lütfen adres bilgilerinizi giriniz.</h6>
+        <EditForm Model=adressCreate OnValidSubmit=AddAdress>
+            <DataAnnotationsValidator />
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">Ülke</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <select class="custom-select" @onchange=SelectedCountryDropDown>
+                                    <option disabled value=0 selected>Seçiniz</option>
+                                    @foreach (var item in countryList)
+                                    {
+                                        <option value=@item.Value>@item.Text</option>
+                                    }
+                                </select>
+                                <ValidationMessage For="@(()=>adressCreate.CountryId)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">İl</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <select class="custom-select" @onchange=SelectedCityDropDown>
+                                    <option disabled value=0 selected>Seçiniz</option>
+                                    @foreach (var item in cityList)
+                                    {
+                                        <option value=@item.Value>@item.Text</option>
+                                    }
+                                </select>
+                                <ValidationMessage For="@(()=>adressCreate.CityId)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">İlçe</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <InputSelect @bind-Value=adressCreate.DistrictId class="custom-select">
+                                    <option disabled value=0 selected>Seçiniz</option>
+                                    @foreach (var item in districtList)
+                                    {
+                                        <option value=@item.Value>@item.Text</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(()=>adressCreate.DistrictId)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">Adres</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <InputText type="input" id="Adress" @bind-Value=adressCreate.AdressDetail />
+                                <ValidationMessage For="@(()=>adressCreate.AdressDetail)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-left">
+                                <a class="float-right">İkamet Başlama Tarihi</a>
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <InputDate @bind-Value=adressCreate.DomicileStartDate>
+
+                                </InputDate>
+                                <ValidationMessage For="@(()=>adressCreate.DomicileStartDate)" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 info-right">
+                            </div>
+                            <div class="col-sm-6 info-right">
+                                <label><InputCheckbox @bind-Value=adressCreate.IsFavorite style="width:15px" /> İletişim Adresi olarak tanımlamak istiyorum.</label>
+                            </div>
+                            <ValidationMessage For="@(()=>adressCreate.IsFavorite)" />
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <ButtonComponent Title="Geri" Type="button" @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("CloseModal","#AdressAdd")) />
+                            </div>
+                            <div class="col-sm">
+                                <ButtonComponent Title="Kaydet" Type="submit" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </Body>
+</ModalPageComponent>
+<SuccessModalComponent Message="Adresiniz başarıyla kaydedildi." Id="successModalAddAdress" ApprovalOnPress=@(async()=> {
+                       await _jSRuntime.InvokeVoidAsync("CloseModal","#successModalAddAdress");
+                       navigation.NavigateTo("/MyProfile", true);
+                       }) />
+
+@code {
+    AdressCreateDto adressCreate = new AdressCreateDto();
+    List<SelectListItemModel> countryList = new List<SelectListItemModel>();
+    List<SelectListItemModel> cityList = new List<SelectListItemModel>();
+    List<SelectListItemModel> districtList = new List<SelectListItemModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var countryResult = await operation.Get<Result<List<SelectListItemModel>>>("/Adress/GetCountryDropDownList");
+        if (countryResult.ResultStatus)
+        {
+            this.countryList = countryResult.ResultObje;
+        }
+    }
+
+    async Task AddAdress()
+    {
+        adressCreate.IsActive = true;
+        var result = await operation.Post<Result>("/Adress/AddAdress", adressCreate);
+        if (result.ResultStatus)
+        {
+            Dispatcher.Dispatch(new SeAdress(null));
+            await _jSRuntime.InvokeVoidAsync("CloseModal", "#AdressAdd");
+            await _jSRuntime.InvokeVoidAsync("OpenModal", "#successModalAddAdress");
+        }
+    }
+
+    async Task SelectedCityDropDown(ChangeEventArgs e)
+    {
+        int cityId = 0;
+        if (int.TryParse(e.Value.ToString(), out cityId))
+        {
+            adressCreate.CityId = cityId;
+            var result = await operation.Get<Result<List<SelectListItemModel>>>($"/Adress/GetDistrictDropDownList?CityId={cityId}");
+            if (result.ResultStatus)
+            {
+                districtList = result.ResultObje;
+            }
+        }
+    }
+
+    async Task SelectedCountryDropDown(ChangeEventArgs e)
+    {
+        int countryId = 0;
+        if (int.TryParse(e.Value.ToString(), out countryId))
+        {
+            adressCreate.CountryId = countryId;
+            var result = await operation.Get<Result<List<SelectListItemModel>>>($"/Adress/GetCityDropDownList?CountryId={countryId}");
+            if (result.ResultStatus)
+            {
+                cityList = result.ResultObje;
+            }
+        }
+    }
+}

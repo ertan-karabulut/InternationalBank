@@ -1,0 +1,1 @@
+Scaffold-DbContext "Server=DESKTOP-MJDNEVL,1444;Database=MyBank;User Id=sa;Password=ertan123;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models/EntityFremework

@@ -1,0 +1,10 @@
+﻿.header-li {
+    margin-left:20px;
+    margin-right:20px;
+}
+a {
+    color: white !important;
+}
+    a:hover {
+        color: white !important;
+    }

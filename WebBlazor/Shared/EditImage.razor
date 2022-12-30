@@ -1,0 +1,23 @@
+﻿@inject NavigationManager navigation
+
+@{
+    if (!string.IsNullOrEmpty(Url))
+    {
+        <img src="../Images/m-edit-icon.png" style="width:32px;height:32px" @onclick="@(()=>DetailPage(Url))"/>
+    }
+    else
+    {
+        <img src="../Images/m-edit-icon.png" style="width:32px;height:32px"/>
+    }
+}
+
+
+@code {
+    [Parameter]
+    public string Url { get; set; }
+
+    void DetailPage(string Url)
+    {
+        navigation.NavigateTo(Url);
+    }
+}

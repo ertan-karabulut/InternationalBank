@@ -1,0 +1,33 @@
+﻿@inject NavigationManager navigation
+@inherits FluxorComponent
+@inject IState<ProfileState> ProfileState
+@inject IDispatcher Dispatcher
+@inject IServiceOperations operation
+
+@if (!object.Equals(claim, null))
+{
+    <a class="align-items-center hidden-arrow" @onclick=@(()=>navigation.NavigateTo("/MyProfile")) role="button">
+        <img src="@claim.Photo"
+         class="rounded-circle"
+         height="50"
+         width="50" />
+        @string.Format("{0} {1}",claim.Name,claim.Surname)
+    </a>
+}
+
+@code {
+    ClaimModel claim;
+    protected override async Task OnInitializedAsync()
+    {
+        claim = ProfileState.Value.Claim;
+        if (object.Equals(claim, null))
+        {
+            var result = await operation.Get<Result<ClaimModel>>("/Customer/GetNameAndImage");
+            if (result.ResultStatus)
+            {
+                Dispatcher.Dispatch(new SetProfile(result.ResultObje));
+                claim = result.ResultObje;
+            }
+        }
+    }
+}

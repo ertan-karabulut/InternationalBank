@@ -1,0 +1,18 @@
+﻿<ModalComponent Id=@Id Title=@(string.IsNullOrEmpty(Title)?"Başarılı":Title) Message=@Message Ok=false ApprovalOnPress=@ApprovalOnPress Approval=@Approval Denial=@Denial DenialOnPress=@DenialOnPress/>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    [Parameter]
+    public string Title { get; set; }
+    [Parameter]
+    public string Message { get; set; }
+    [Parameter]
+    public string Approval { get; set; }
+    [Parameter]
+    public string Denial { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> ApprovalOnPress { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> DenialOnPress { get; set; }
+}

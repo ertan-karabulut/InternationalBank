@@ -1,0 +1,113 @@
+﻿@inherits FluxorComponent
+@inject IState<AdressState> AdressState
+@inject IDispatcher Dispatcher
+@inject IJSRuntime _jSRuntime
+@inject NavigationManager navigation
+@inject IServiceOperations operation
+
+<div class="row">
+    <div class="col-sm-12">
+        <h6>Adres Bilgilerim</h6>
+        <Table>
+            <TableHeader>
+                <th>
+                    İletişim
+                </th>
+                <th>
+                    Adres Tipi
+                </th>
+                <th>
+                    İl
+                </th>
+                <th>
+                    İlçe
+                </th>
+                <th>
+                    Adres
+                </th>
+                <th>
+                    İşlemler
+                </th>
+            </TableHeader>
+            <RowTemplate>
+                @if (!object.Equals(adressList, null))
+                {
+                    foreach (var item in adressList)
+                    {
+                        customerId = item.CustomerId;
+                        <tr>
+                            <td>
+                                @if (@item.IsFavorite)
+                                {
+                                    <a>
+                                        <img src="../Images/check.png" style="width:10px;height:10px">
+                                    </a>
+                                }
+                            </td>
+                            <td>@item.AdressName</td>
+                            <td>@item.CityName</td>
+                            <td>@item.DistrictName</td>
+                            <td>@item.AdressDetail</td>
+                            <td>
+                                <a class="custoLink" @onclick=@(()=>{
+                           OpenChangeModal(item.Id);
+                           }) role="button">Düzenle</a>
+                                <a class="custoLink" @onclick=@(async()=>{
+                                    Id = item.Id;
+                                    await _jSRuntime.InvokeVoidAsync("OpenModal","#DeleteModal");
+                                }) role="button">Sil</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </RowTemplate>
+        </Table>
+        <a class="custoLink" role="button" @onclick=@(async()=> await _jSRuntime.InvokeVoidAsync("OpenModal","#AdressAdd"))><img src="../Images/Add.png" style="width:20px;height:20px">YENİ ADRES EKLE</a>
+    </div>
+</div>
+<AdressChangeModal Id=Id/>
+<AdressAddModal/>
+<ConfirmModalComponent Id="DeleteModal" Title="Silme onayı" Message="İşlem  sonrasında adresin silinecek. Onaylıyor musun?" Approval="Evet" Denial="Hayır" ApprovalOnPress=DeleteAdress/>
+
+@code {
+    List<AdressDto> adressList;
+    int Id;
+    int customerId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        adressList = AdressState.Value.AdressList;
+        if (object.Equals(adressList, null))
+        {
+            DataTableRequest request = new DataTableRequest();
+            var result = await operation.Post<Result<DataTableResponse<AdressDto>>>($"/Adress/CustomerAdressList", request);
+            if (result.ResultStatus)
+            {
+                Dispatcher.Dispatch(new SeAdress(result.ResultObje.Data));
+                adressList = result.ResultObje.Data;
+            }
+        }
+        else
+        {
+            adressList = AdressState.Value.AdressList;
+        }
+    }
+
+    async void OpenChangeModal(int id)
+    {
+        Id = id;
+        await _jSRuntime.InvokeVoidAsync("OpenModal", "#Adress");
+    }
+
+    async void DeleteAdress()
+    {
+        AdressUpdateDto adressUpdate = new AdressUpdateDto();
+        adressUpdate.Id = Id;
+        adressUpdate.CustomerId = customerId;
+        var result = await operation.Post<Result>("/Adress/DeleteAdress",adressUpdate);
+        if (result.ResultStatus)
+        {
+            navigation.NavigateTo("/MyProfile", true);
+        }
+    }
+}

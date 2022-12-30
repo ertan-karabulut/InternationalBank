@@ -1,0 +1,71 @@
+﻿@inject ISessionStorageService sessionStorage
+@inject IServiceOperations operation
+@inject NavigationManager navigation
+@inject IJSRuntime _jSRuntime
+@inherits FluxorComponent
+@inject IState<ProfileState> ProfileState
+@inject IDispatcher Dispatcher
+
+@if (!object.Equals(claim, null))
+{
+    <ModalPageComponent Id="Photo" Title="Resim Değişikliği" LeftButtonTitle="RESİM YÜKLE" LeftButtonOnPress=ChangePhoto OpenButton=true>
+        <Body>
+            <h6>Profil fotoğrafınız ana sayfada ve internet bankacılığı üst alanında görünecektir.</h6>
+            <div class="row">
+                <div class="col-sm">
+                    <label>
+                        <img src="@claim.Photo"
+                         class="rounded-circle"
+                         style="height:10rem;width:10rem"
+                         role="button" />
+
+                        <InputFile type="file" style="visibility: hidden;" accept=".jpg,.jpeg,.gif,.png,.tiff,.pdf,.bmp" OnChange=InputFileChange />
+                    </label>
+                </div>
+            </div>
+        </Body>
+    </ModalPageComponent>
+}
+<SuccessModalComponent Message="Profil fotoğrafınız başarıyla güncellendi." Id="successModal" ApprovalOnPress=SuccessChangePhoto/>
+
+
+@code {
+    ClaimModel claim;
+    FileModel file;
+    protected override void OnInitialized()
+    {
+        claim = ProfileState.Value.Claim;
+    }
+
+    async Task InputFileChange(InputFileChangeEventArgs e)
+    {
+        if (e.FileCount > 0)
+        {
+            file = new FileModel();
+            var buffer = new byte[e.File.Size];
+            await e.File.OpenReadStream().ReadAsync(buffer);
+            file.Data = Convert.ToBase64String(buffer);
+            file.FileName = e.File.Name;
+            file.Type = Path.GetExtension(e.File.Name).Replace('.', ' ').Trim();
+            claim.Photo = $"data:image/{file.Type};base64,{file.Data}";
+        }
+    }
+
+    async Task ChangePhoto()
+    {
+        if (!object.Equals(file, null))
+        {
+            var result = await operation.Post<Result>($"/Customer/UpdateProfilePhoto", file);
+            if (result.ResultStatus)
+            {
+                Dispatcher.Dispatch(new SetProfile(claim));
+                await _jSRuntime.InvokeVoidAsync("OpenModal","#successModal");
+            }
+        }
+    }
+
+    async void SuccessChangePhoto()
+    {
+        await _jSRuntime.InvokeVoidAsync("CloseModal","#successModal");
+    }
+}
